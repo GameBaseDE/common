@@ -1,0 +1,77 @@
+image: docker:19
+
+before_script:
+  - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+
+---
+
+Build image:
+  stage: build
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+
+---
+
+Tag as latest:
+  stage: push
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - docker pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - master
+
+Push tag:
+  stage: push
+  variable:
+    GIT_STRATEGY: none
+  script:
+    - docker pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  only:
+    - tags
+
+---
+  
+Deploy master:
+  stage: deploy
+  variable:
+    GIT_STRATEGY: none
+  script:
+    - >
+    if [ -n "$(docker ps --filter label=$CI_REGISTRY_IMAGE-live -q)" ]; then 
+        docker stop $CI_REGISTRY_IMAGE-live
+        docker rm $CI_REGISTRY_IMAGE-live
+    fi;
+    - >
+    docker run -d -p $HOST_PORT:$CONTAINER_PORT
+        --name $CI_REGISTRY_IMAGE-live
+        --label $CI_REGISTRY_IMAGE-live
+        $CI_REGISTRY/$CI_REGISTRY_IMAGE:latest
+  when: manual
+  only:
+    - master
+
+Deploy image:
+  stage: deploy
+  variable:
+    GIT_STRATEGY: none
+  script:
+    - >
+    if [ -n "$(docker ps --filter label=$CI_REGISTRY_IMAGE-dev -q)" ]; then 
+        docker stop $CI_REGISTRY_IMAGE-dev
+        docker rm $CI_REGISTRY_IMAGE-lidevve
+    fi;
+    - >
+    docker run -d -p $HOST_PORT:$CONTAINER_PORT
+        --name $CI_REGISTRY_IMAGE-dev
+        --label $CI_REGISTRY_IMAGE-dev
+        $CI_REGISTRY/$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  when: manual
+  except:
+    - master
+
