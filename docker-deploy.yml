@@ -58,6 +58,8 @@ Deploy master:
         --label ${CI_REGISTRY_IMAGE}-live
         $CI_REGISTRY/$CI_REGISTRY_IMAGE:latest
   when: manual
+  tags:
+    - GameBase
   only:
     - master
 
@@ -72,6 +74,8 @@ Deploy image:
         --label ${CI_REGISTRY_IMAGE}-dev
         $CI_REGISTRY/$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   when: manual
+  tags:
+    - GameBase
   except:
     - master
 
