@@ -1,9 +1,10 @@
 services:
-  - docker:dind
+  - docker:19.03.4-dind
 
 variables:
-  CI_DOCKER_IMAGE: docker:19
+  CI_DOCKER_IMAGE: docker:19.03.4
   DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
 
 stages:
   - build
