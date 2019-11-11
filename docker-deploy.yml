@@ -14,7 +14,7 @@ Build image:
   stage: build
   image: $CI_DOCKER_IMAGE
   script:
-    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   tags:
@@ -26,7 +26,7 @@ Tag as latest:
   variables:
     GIT_STRATEGY: none
   script:
-    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
@@ -41,7 +41,7 @@ Push tag:
   variables:
     GIT_STRATEGY: none
   script:
-    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
@@ -56,7 +56,7 @@ Deploy master:
   variables:
     GIT_STRATEGY: none
   script:
-    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - if [ -n "$(docker ps --filter label=${CI_REGISTRY_IMAGE}-live -q)" ]; then docker stop ${CI_REGISTRY_IMAGE}-live; docker rm ${CI_REGISTRY_IMAGE}-live; fi
     - docker run 
         -d
@@ -76,7 +76,7 @@ Deploy image:
   variables:
     GIT_STRATEGY: none
   script:
-    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - if [ -n "$(docker ps --filter label=${CI_REGISTRY_IMAGE}-dev -q)" ]; then docker stop $CI_REGISTRY_IMAGE-dev; docker rm $CI_REGISTRY_IMAGE-dev; fi
     - docker run -d -p $HOST_PORT:$CONTAINER_PORT
         --name ${CI_REGISTRY_IMAGE}-dev
