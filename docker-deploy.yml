@@ -1,12 +1,8 @@
-image: docker:19
-
 services:
-  - name: docker:dind
-    entrypoint: ["env", "-u", "DOCKER_HOST"]
-    command: ["dockerd-entrypoint.sh"]
+  - docker:dind
 
 variables:
-  DOCKER_HOST: tcp://docker:2378/
+  CI_DOCKER_IMAGE: docker:19
   DOCKER_DRIVER: overlay2
 
 stages:
@@ -14,12 +10,11 @@ stages:
   - push
   - deploy
 
-before_script:
-  - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-
 Build image:
   stage: build
+  image: $CI_DOCKER_IMAGE
   script:
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker build --pull -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
   tags:
@@ -27,9 +22,11 @@ Build image:
 
 Tag as latest:
   stage: push
+  image: $CI_DOCKER_IMAGE
   variables:
     GIT_STRATEGY: none
   script:
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
@@ -40,9 +37,11 @@ Tag as latest:
 
 Push tag:
   stage: push
+  image: $CI_DOCKER_IMAGE
   variables:
     GIT_STRATEGY: none
   script:
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - docker pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
@@ -53,9 +52,11 @@ Push tag:
   
 Deploy master:
   stage: deploy
+  image: $CI_DOCKER_IMAGE
   variables:
     GIT_STRATEGY: none
   script:
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - if [ -n "$(docker ps --filter label=${CI_REGISTRY_IMAGE}-live -q)" ]; then docker stop ${CI_REGISTRY_IMAGE}-live; docker rm ${CI_REGISTRY_IMAGE}-live; fi
     - docker run 
         -d
@@ -71,9 +72,11 @@ Deploy master:
 
 Deploy image:
   stage: deploy
+  image: $CI_DOCKER_IMAGE
   variables:
     GIT_STRATEGY: none
   script:
+    - echo -n $CI_REGISTRY_PASSWORD | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - if [ -n "$(docker ps --filter label=${CI_REGISTRY_IMAGE}-dev -q)" ]; then docker stop $CI_REGISTRY_IMAGE-dev; docker rm $CI_REGISTRY_IMAGE-dev; fi
     - docker run -d -p $HOST_PORT:$CONTAINER_PORT
         --name ${CI_REGISTRY_IMAGE}-dev
