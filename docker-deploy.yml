@@ -5,6 +5,7 @@ variables:
   CI_DOCKER_IMAGE: docker:19.03.4
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: ""
+  DOCKER_IMAGE_NAME: $CI_REGISTRY/$CI_REGISTRY_IMAGE
 
 stages:
   - build
@@ -16,8 +17,8 @@ Build image:
   image: $CI_DOCKER_IMAGE
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker build --cache-from "$CI_REGISTRY_IMAGE:latest" -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker build --cache-from "$DOCKER_IMAGE_NAME:latest" -t "$DOCKER_IMAGE_NAME:$CI_COMMIT_SHA" .
+    - docker push $DOCKER_IMAGE_NAME:$CI_COMMIT_SHA
   tags:
     - GameBase
 
@@ -28,9 +29,9 @@ Tag as latest:
     GIT_STRATEGY: none
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
-    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker pull -t $DOCKER_IMAGE_NAME:$CI_COMMIT_SHA
+    - docker tag $DOCKER_IMAGE_NAME:$CI_COMMIT_SHA $DOCKER_IMAGE_NAME:latest
+    - docker push $DOCKER_IMAGE_NAME:latest
   tags:
     - GameBase  
   only:
@@ -43,9 +44,9 @@ Push tag:
     GIT_STRATEGY: none
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker pull $DOCKER_IMAGE_NAME:$CI_COMMIT_SHA
+    - docker tag $DOCKER_IMAGE_NAME:$CI_COMMIT_SHA $DOCKER_IMAGE_NAME:$CI_COMMIT_REF_NAME
+    - docker push $DOCKER_IMAGE_NAME:$CI_COMMIT_REF_NAME
   tags:
     - GameBase
   
@@ -56,13 +57,13 @@ Deploy master:
     GIT_STRATEGY: none
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - if [ -n "$(docker ps --filter label=${CI_REGISTRY_IMAGE}-live -q)" ]; then docker stop ${CI_REGISTRY_IMAGE}-live; docker rm ${CI_REGISTRY_IMAGE}-live; fi
+    - if [ -n "$(docker ps --filter label=${DOCKER_IMAGE_NAME}-live -q)" ]; then docker stop ${DOCKER_IMAGE_NAME}-live; docker rm ${DOCKER_IMAGE_NAME}-live; fi
     - docker run 
         -d
         -p $HOST_PORT:$CONTAINER_PORT
-        --name ${CI_REGISTRY_IMAGE}-live
-        --label ${CI_REGISTRY_IMAGE}-live
-        $CI_REGISTRY/$CI_REGISTRY_IMAGE:latest
+        --name ${CI_REGDOCKER_IMAGE_NAMEISTRY_IMAGE}-live
+        --label ${DOCKER_IMAGE_NAME}-live
+        $DOCKER_IMAGE_NAME:latest
   when: manual
   tags:
     - GameBase
@@ -76,11 +77,11 @@ Deploy image:
     GIT_STRATEGY: none
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - if [ -n "$(docker ps --filter label=${CI_REGISTRY_IMAGE}-dev -q)" ]; then docker stop $CI_REGISTRY_IMAGE-dev; docker rm $CI_REGISTRY_IMAGE-dev; fi
+    - if [ -n "$(docker ps --filter label=${DOCKER_IMAGE_NAME}-dev -q)" ]; then docker stop $DOCKER_IMAGE_NAME-dev; docker rm $DOCKER_IMAGE_NAME-dev; fi
     - docker run -d -p $HOST_PORT:$CONTAINER_PORT
-        --name ${CI_REGISTRY_IMAGE}-dev
-        --label ${CI_REGISTRY_IMAGE}-dev
-        $CI_REGISTRY/$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+        --name ${DOCKER_IMAGE_NAME}-dev
+        --label ${DOCKER_IMAGE_NAME}-dev
+        $DOCKER_IMAGE_NAME:$CI_COMMIT_REF_NAME
   when: manual
   tags:
     - GameBase
