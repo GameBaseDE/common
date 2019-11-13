@@ -48,8 +48,6 @@ Push tag:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   tags:
     - GameBase
-  only:
-    - tags
   
 Deploy master:
   stage: deploy
