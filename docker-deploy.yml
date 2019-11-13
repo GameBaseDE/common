@@ -29,7 +29,7 @@ Tag as latest:
     GIT_STRATEGY: none
   script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker pull -t $DOCKER_IMAGE_NAME:$CI_COMMIT_SHA
+    - docker pull $DOCKER_IMAGE_NAME:$CI_COMMIT_SHA
     - docker tag $DOCKER_IMAGE_NAME:$CI_COMMIT_SHA $DOCKER_IMAGE_NAME:latest
     - docker push $DOCKER_IMAGE_NAME:latest
   tags:
