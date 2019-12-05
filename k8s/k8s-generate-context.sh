@@ -28,7 +28,7 @@ then
     exit 1
 fi
 
-kubectl config set-cluster gamebase-cluster --cluster=https://kubernetes.gahr.dev
+kubectl config set-cluster gamebase-cluster --server=https://kubernetes.gahr.dev
 if [ "$1" = "user" ]
 then
     kubectl_user "$@"
