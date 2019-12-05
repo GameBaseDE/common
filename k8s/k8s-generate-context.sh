@@ -42,5 +42,5 @@ else
 fi
 kubectl config set-context gamebase-context --cluster=gamebase-cluster --user=gamebase-user
 
-echo "Done. Use 'kubectl config use-context gamebase-cluster' in order to access GameBase K8S cluster."
+echo "Done. Use 'kubectl config use-context gamebase-context' in order to access GameBase K8S cluster."
 exit 0
