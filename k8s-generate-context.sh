@@ -16,23 +16,31 @@ kubectl_token()
     kubectl config set-credentials gamebase-user --token="$2"
 }
 
-if [ $# -lt 1 ] then
-    echo "ERROR: There are not enough parameters."
-    print_usage()
-else if [ $# -gt 3 ] then
-    echo "ERROR: There are more than 3 parameters."
-    print_usage()
+if [ "$#" -lt 2 ]
+then
+    echo "ERROR: There are not enough parameters." >&2
+    print_usage
+    exit 1
+elif [ "$#" -gt 3 ]
+then
+    echo "ERROR: There are more than 3 parameters." >&2
+    print_usage
+    exit 1
 fi
 
 kubectl config set-cluster gamebase-cluster --cluster=https://kubernetes.gahr.dev
-if [ $1 -eq 'user' ] then
-    kubectl_user()
-else if [ $1 -eq 'token' ] then
-    kubectl_token()
+if [ "$1" = "user" ]
+then
+    kubectl_user "$@"
+elif [ "$1" = "token" ]
+then
+    kubectl_token "$@"
 else
-    echo "ERROR: Your first parameter is invalid."
-    print_usage()
+    echo "ERROR: Your first parameter is invalid." >&2
+    print_usage
+    exit 1
 fi
 kubectl config set-context gamebase-context --cluster=gamebase-cluster --user=gamebase-user
 
 echo "Done. Use 'kubectl config use-context gamebase-cluster' in order to access GameBase K8S cluster."
+exit 0
